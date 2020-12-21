@@ -42,14 +42,13 @@ end
 
 Starts 100 clients asynchronously adn return the tasks running them.
 """
-function start_clients()
+function start_clients(num_clients::Int)
     num_sample = 60000
-    num_clients = 100
     step = Int(floor(num_sample / num_clients))
 
     tasks = [
         @async start_client(get_traindata((i * step + 1):((i+1) * step), isflat=true), 8081+i)
-        for i in 0:9
+        for i in 0:num_clients
     ]
     
     return tasks

@@ -1,5 +1,16 @@
 using Fed
+using Fed: curry
 using Flux
+using Flux.Data: DataLoader
+
+
+struct Server
+    model::Chain
+    dataset::DataLoader
+
+    Server() = new(MODEL, get_testdata(isflat=true))
+end
+
 
 function start_server()
     # config
@@ -9,7 +20,8 @@ function start_server()
     strategy = Fed.Server.federated_averaging
 
     # instanciate the server
-    central_node = Fed.Server.CentralNode(host, port)
+    server = Server()
+    central_node = Fed.Server.CentralNode(host, port, curry(evaluate, server))
     config = Fed.Server.Config(weights, strategy)
 
     # start the server
