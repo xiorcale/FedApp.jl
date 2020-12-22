@@ -30,10 +30,9 @@ function start_client(dataset, port::Int)
     host = "127.0.0.1"
 
     node = Fed.Client.Node(host, port, curry(fit, client))
-    config = Fed.Client.Config()
 
     @info "Client started on [http://$host:$port]"
-    Fed.Client.start_client(node, config)
+    Fed.Client.start_client(node)
 end
 
 

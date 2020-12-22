@@ -10,5 +10,6 @@ include("client.jl")
 
 include("ml/train.jl")
 include("ml/evaluate.jl")
+include("ml/permuter.jl")
 
 end # module
