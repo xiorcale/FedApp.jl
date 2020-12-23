@@ -12,7 +12,7 @@ struct Client
     epochs::Int
 
     Client(dataset) = new(
-        deepcopy(MODEL),
+        model(),
         dataset,
         Momentum(0.01, 0.5),
         5 # epochs
@@ -29,7 +29,8 @@ function start_client(dataset, port::Int)
     client = Client(dataset)
     host = "127.0.0.1"
 
-    node = Fed.Client.Node(host, port, curry(fit, client))
+    config = initialize_config()
+    node = Fed.Client.Node{config.qdtype}(host, port, curry(fit, client), config)
 
     @info "Client started on [http://$host:$port]"
     Fed.Client.start_client(node)
@@ -47,7 +48,7 @@ function start_clients(num_clients::Int)
 
     tasks = [
         @async start_client(get_traindata((i * step + 1):((i+1) * step), isflat=true), 8081+i)
-        for i in 0:num_clients
+        for i in 0:num_clients-1
     ]
     
     return tasks

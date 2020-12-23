@@ -4,6 +4,8 @@ authors = ["xiorcale <quentin.vaucher@protonmail.com>"]
 version = "0.1.0"
 
 [deps]
+CRC32c = "8bf52ea8-c179-5cab-976a-9e18b702a9bc"
 Fed = "b643f364-72a2-4057-9751-5605fbd2f349"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
