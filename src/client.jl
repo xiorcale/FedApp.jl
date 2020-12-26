@@ -1,5 +1,5 @@
 using Fed
-using Fed: curry
+using Fed: curry, VanillaConfig, QuantizedConfig, GDConfig
 using Flux
 using Flux.Data: DataLoader
 using Flux.Optimise: Momentum
@@ -29,8 +29,30 @@ function start_client(dataset, port::Int)
     client = Client(dataset)
     host = "127.0.0.1"
 
-    config = initialize_config()
-    node = Fed.Client.Node{config.qdtype}(host, port, curry(fit, client), config)
+    # config = VanillaConfig{Float32}(
+    #     "http://127.0.0.1:8080", 
+    #     NUM_COMM_ROUNDS, 
+    #     FRACTION_CLIENTS, 
+    #     NUM_TOTAL_CLIENTS
+    # )
+    # config = QuantizedConfig{UInt8}(
+    #     "http://127.0.0.1:8080",
+    #     NUM_COMM_ROUNDS,
+    #     FRACTION_CLIENTS,
+    #     NUM_TOTAL_CLIENTS,
+    # )
+    config = GDConfig{UInt8}(
+        "http://127.0.0.1:8080",
+        NUM_COMM_ROUNDS,
+        FRACTION_CLIENTS,
+        NUM_TOTAL_CLIENTS,
+        256,
+        sha1,
+        0x05,
+        "./permutations.jld"
+    )
+
+    node = Fed.Client.Node{config.common.dtype}(host, port, curry(fit, client), config)
 
     @info "Client started on [http://$host:$port]"
     Fed.Client.start_client(node)
