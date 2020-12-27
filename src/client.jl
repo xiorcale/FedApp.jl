@@ -12,7 +12,7 @@ struct Client
     epochs::Int
 
     Client(dataset) = new(
-        model(),
+        newmodel(),
         dataset,
         Momentum(0.01, 0.5),
         5 # epochs
@@ -27,32 +27,12 @@ Starts one client with the given dataset on the given localhost port.
 """
 function start_client(dataset, port::Int)
     client = Client(dataset)
+    config = newconfig()
+
     host = "127.0.0.1"
+    train_hook = curry(fit, client)
 
-    # config = VanillaConfig{Float32}(
-    #     "http://127.0.0.1:8080", 
-    #     NUM_COMM_ROUNDS, 
-    #     FRACTION_CLIENTS, 
-    #     NUM_TOTAL_CLIENTS
-    # )
-    # config = QuantizedConfig{UInt8}(
-    #     "http://127.0.0.1:8080",
-    #     NUM_COMM_ROUNDS,
-    #     FRACTION_CLIENTS,
-    #     NUM_TOTAL_CLIENTS,
-    # )
-    config = GDConfig{UInt8}(
-        "http://127.0.0.1:8080",
-        NUM_COMM_ROUNDS,
-        FRACTION_CLIENTS,
-        NUM_TOTAL_CLIENTS,
-        256,
-        sha1,
-        0x05,
-        "./permutations.jld"
-    )
-
-    node = Fed.Client.Node{config.common.dtype}(host, port, curry(fit, client), config)
+    node = Fed.Client.Node{config.common.dtype}(host, port, train_hook, config)
 
     @info "Client started on [http://$host:$port]"
     Fed.Client.start_client(node)

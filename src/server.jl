@@ -8,7 +8,7 @@ struct Server
     dataset::DataLoader
 
     Server() = new(
-        model(),
+        newmodel(),
         get_testdata(isflat=true)
     )
 end
@@ -16,30 +16,7 @@ end
 
 function start_server()
     server = Server()
-    num_comm_rounds = 100
-    
-    # config = VanillaConfig{Float32}(
-    #     "http://127.0.0.1:8080", 
-    #     NUM_COMM_ROUNDS, 
-    #     FRACTION_CLIENTS, 
-    #     NUM_TOTAL_CLIENTS
-    # )
-    # config = QuantizedConfig{UInt8}(
-    #     "http://127.0.0.1:8080",
-    #     NUM_COMM_ROUNDS,
-    #     FRACTION_CLIENTS,
-    #     NUM_TOTAL_CLIENTS
-    # )
-    config = GDConfig{UInt8}(
-        "http://127.0.0.1:8080",
-        NUM_COMM_ROUNDS,
-        FRACTION_CLIENTS,
-        NUM_TOTAL_CLIENTS,
-        256,
-        sha1,
-        0x05,
-        "./permutations.jld"
-    )
+    config = newconfig()
 
     # config
     host = "127.0.0.1"
