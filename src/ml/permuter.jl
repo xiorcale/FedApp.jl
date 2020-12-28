@@ -16,10 +16,11 @@ function generate_permutations(model::Chain, dataset::DataLoader; optimizer=Mome
     loss(x, y) = logitcrossentropy(model(x), y)
 
     num_epochs = 5
-    weights = Vector{Vector{Float32}}(undef, num_epochs)
+    weights = Vector{Vector{Float32}}(undef, num_epochs+1)
+    weights[1] = flatten_model(model)
 
-    for i = 1:num_epochs
-        println("epochs [$i/$num_epochs]")
+    for i = 2:num_epochs+1
+        println("epochs [$(i-1)/$(num_epochs)]")
         local train_loss = 0.0f0
         for (i, batch) in enumerate(dataset)
             grads = gradient(params(model)) do
@@ -33,10 +34,9 @@ function generate_permutations(model::Chain, dataset::DataLoader; optimizer=Mome
         weights[i] = flatten_model(model)
     end
 
-    weights_entropy = sum([abs.(weights[i-1] - weights[i]) for i in 2:num_epochs])
+    weights_diff = sum([abs.(weights[i-1] - weights[i]) for i in 2:num_epochs+1]) / num_epochs
    
-    perms = sortperm(weights_entropy)
+    perms = sortperm(weights_diff)
 
     JLD.save("permutations.jld", "permutations", perms)
 end
-
