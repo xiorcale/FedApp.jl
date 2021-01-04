@@ -27,7 +27,7 @@ Starts one client with the given dataset on the given localhost port.
 """
 function start_client(dataset, port::Int)
     client = Client(dataset)
-    config = newconfig()
+    config = newconfig(true)
 
     host = "127.0.0.1"
     train_hook = curry(fit, client)

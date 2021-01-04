@@ -31,23 +31,25 @@ newVanillaConfig() = VanillaConfig{Float32}(
     NUM_TOTAL_CLIENTS
 )
 
-newQuantizedConfig(dtype::Type{T}) where T <: Unsigned = QuantizedConfig{dtype}(
-    SERVERURL,
-    NUM_COMM_ROUNDS,
-    FRACTION_CLIENTS,
-    NUM_TOTAL_CLIENTS
-)
-
-newGDConfig(dtype::Type{T}) where T <: Unsigned = GDConfig{dtype}(
+newQuantizedConfig(dtype::Type{T}, is_patcher::Bool) where T <: Unsigned = QuantizedConfig{dtype}(
     SERVERURL,
     NUM_COMM_ROUNDS,
     FRACTION_CLIENTS,
     NUM_TOTAL_CLIENTS,
     256,
-    sha1,
-    # hash_crc32,
-    round(dtype, 0.6 * sizeof(dtype) * 8),  # 60% of each weight goes in the basis
-    "./permutations.jld"
+    is_patcher
+)
+
+newGDConfig(dtype::Type{T}, is_patcher::Bool) where T <: Unsigned = GDConfig{dtype}(
+    SERVERURL,
+    NUM_COMM_ROUNDS,
+    FRACTION_CLIENTS,
+    NUM_TOTAL_CLIENTS,
+    256,
+    # sha1,
+    hash_crc32,
+    round(dtype, 0.3 * sizeof(dtype) * 8),  # 60% of each weight goes in the basis,
+    is_patcher
 )
 
 """
@@ -55,9 +57,9 @@ newGDConfig(dtype::Type{T}) where T <: Unsigned = GDConfig{dtype}(
 
 Returns a new current configuration.
 """
-# newconfig() = newVanillaConfig()
-# newconfig() = newQuantizedConfig(UInt16)
-newconfig() = newGDConfig(UInt8)
+# newconfig(_) = newVanillaConfig()
+# newconfig(is_patcher) = newQuantizedConfig(UInt8, is_patcher)
+newconfig(is_patcher) = newGDConfig(UInt8, is_patcher)
 
 """
     newmodel()

@@ -16,7 +16,7 @@ end
 
 function start_server()
     server = Server()
-    config = newconfig()
+    config = newconfig(false)
 
     # config
     host = "127.0.0.1"
