@@ -1,3 +1,5 @@
+using Fed.Config: BaseConfig, VanillaConfig, QuantizedConfig,
+    QuantizedDedupConfig, GDConfig
 using SHA
 using CRC32c
 
@@ -24,46 +26,45 @@ const NUM_COMM_ROUNDS = 100
 const FRACTION_CLIENTS = 0.1f0
 const NUM_TOTAL_CLIENTS = 100
 
-newVanillaConfig() = VanillaConfig{Float32}(
+const base_config = BaseConfig(
     SERVERURL,
     NUM_COMM_ROUNDS,
     FRACTION_CLIENTS,
     NUM_TOTAL_CLIENTS
 )
 
-newQuantizedConfig(dtype::Type{T}, is_patcher::Bool) where T <: Unsigned = QuantizedConfig{dtype}(
-    SERVERURL,
-    NUM_COMM_ROUNDS,
-    FRACTION_CLIENTS,
-    NUM_TOTAL_CLIENTS,
-    256,
-    is_patcher
-)
+newVanillaConfig() = VanillaConfig(base_config)
+newQuantizedConfig(::Type{T}) where T <: Unsigned = QuantizedConfig{T}(base_config)
+newQuantizedDedupConfig(::Type{T}, is_client::Bool) where T <: Unsigned =
+    QuantizedDedupConfig{T}(base_config, 256, is_client)
 
-newGDConfig(dtype::Type{T}, is_patcher::Bool) where T <: Unsigned = GDConfig{dtype}(
-    SERVERURL,
-    NUM_COMM_ROUNDS,
-    FRACTION_CLIENTS,
-    NUM_TOTAL_CLIENTS,
-    256,
-    # sha1,
-    hash_crc32,
-    round(dtype, 0.3 * sizeof(dtype) * 8),  # 60% of each weight goes in the basis,
-    is_patcher
-)
+newGDConfig(::Type{T}, port::Int, is_client::Bool) where T <: Unsigned =
+    GDConfig{T}(
+        base_config,
+        256,
+        # sha1,
+        hash_crc32,
+        round(dtype, 0.5 * sizeof(dtype) * 8),  # 60% of each weight goes in the basis,
+        "127.0.0.1",
+        port,
+        is_client
+    )
+
 
 """
     newconfig()
 
 Returns a new current configuration.
 """
-# newconfig(_) = newVanillaConfig()
-# newconfig(is_patcher) = newQuantizedConfig(UInt8, is_patcher)
-newconfig(is_patcher) = newGDConfig(UInt8, is_patcher)
+# newconfig(_, _) = newVanillaConfig()
+# newconfig(_, _) = newQuantizedConfig(UInt8)
+newconfig(_, is_client) = newQuantizedDedupConfig(UInt8, is_client)
+# newconfig(port, is_client) = newGDConfig(UInt8, port, is_client)
+
 
 """
     newmodel()
 
-Returns a new current model. 
+Returns a new current model.
 """
 newmodel() = initialize_mlp(28*28, 200, 10)

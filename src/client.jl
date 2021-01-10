@@ -1,5 +1,4 @@
 using Fed
-using Fed: curry, VanillaConfig, QuantizedConfig, GDConfig
 using Flux
 using Flux.Data: DataLoader
 using Flux.Optimise: Momentum
@@ -25,17 +24,17 @@ end
 
 Starts one client with the given dataset on the given localhost port.
 """
-function start_client(dataset, port::Int)
+function start_client(dataset, port::Int, store_port::Int)
     client = Client(dataset)
-    config = newconfig(true)
+    config = newconfig(store_port, true)
 
     host = "127.0.0.1"
-    train_hook = curry(fit, client)
+    train_hook = (weights::Vector{Float32}) -> fit(client, weights)
 
-    node = Fed.Client.Node{config.common.dtype}(host, port, train_hook, config)
+    node = Fed.Client.Node(host, port, train_hook, config)
 
     @info "Client started on [http://$host:$port]"
-    Fed.Client.start_client(node)
+    Fed.Client.start(node)
 end
 
 
@@ -49,7 +48,7 @@ function start_clients(num_clients::Int)
     step = Int(floor(num_sample / num_clients))
 
     tasks = [
-        @async start_client(get_traindata((i * step + 1):((i+1) * step), isflat=true), 8081+i)
+        @async start_client(get_traindata((i * step + 1):((i+1) * step), isflat=true), 8081+i, 9091+i)
         for i in 0:num_clients-1
     ]
     
