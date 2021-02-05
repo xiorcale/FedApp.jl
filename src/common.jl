@@ -1,5 +1,5 @@
 using Fed.Config: BaseConfig, VanillaConfig, QuantizedConfig,
-    QuantizedDedupConfig, GDConfig
+    QDiffConfig, QDiffStaticConfig, GDConfig, GDStaticConfig
 using SHA
 using CRC32c
 
@@ -35,16 +35,31 @@ const base_config = BaseConfig(
 
 newVanillaConfig() = VanillaConfig(base_config)
 newQuantizedConfig(::Type{T}) where T <: Unsigned = QuantizedConfig{T}(base_config)
-newQuantizedDedupConfig(::Type{T}, is_client::Bool) where T <: Unsigned =
-    QuantizedDedupConfig{T}(base_config, 256, is_client)
+newQDiffConfig(::Type{T}, is_client::Bool) where T <: Unsigned =
+    QDiffConfig{T}(base_config, 256, is_client)
+
+newQDiffStaticConfig(::Type{T}, is_client::Bool) where T <: Unsigned =
+    QDiffStaticConfig{T}(base_config, 256, is_client)
 
 newGDConfig(::Type{T}, port::Int, is_client::Bool) where T <: Unsigned =
     GDConfig{T}(
         base_config,
         256,
+        sha1,
+        # hash_crc32,
+        round(T, 0.125 * sizeof(T) * 8), # % of each weight which goes in the basis
+        "127.0.0.1",
+        port,
+        is_client
+    )
+
+newGDStaticConfig(::Type{T}, port::Int, is_client::Bool) where T <: Unsigned =
+    GDStaticConfig{T}(
+        base_config,
+        256,
         # sha1,
         hash_crc32,
-        round(dtype, 0.5 * sizeof(dtype) * 8),  # 60% of each weight goes in the basis,
+        round(T, 0.6 * sizeof(T) * 8), # % of each weight which goes in the basis
         "127.0.0.1",
         port,
         is_client
@@ -58,9 +73,10 @@ Returns a new current configuration.
 """
 # newconfig(_, _) = newVanillaConfig()
 # newconfig(_, _) = newQuantizedConfig(UInt8)
-newconfig(_, is_client) = newQuantizedDedupConfig(UInt8, is_client)
-# newconfig(port, is_client) = newGDConfig(UInt8, port, is_client)
-
+# newconfig(_, is_client) = newQDiffConfig(UInt8, is_client)
+# newconfig(_, is_client) = newQDiffStaticConfig(UInt16, is_client)
+newconfig(port, is_client) = newGDConfig(UInt8, port, is_client)
+# newconfig(port, is_client) = newGDStaticConfig(UInt8, port, is_client)
 
 """
     newmodel()
